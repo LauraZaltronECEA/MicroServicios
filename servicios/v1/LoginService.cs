@@ -1,14 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using models.DTO;
 using models.Entidades;
 using models.Responses;
 using Newtonsoft.Json;
+using services.Handlers;
 using servicios.Handlers;
 using servicios.Repositories;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+
 namespace servicios.v1
 
 {
@@ -20,6 +18,32 @@ namespace servicios.v1
         {
             _configuration = configuration;
         }
+
+
+        public Task<bool> GetLogin()
+        {
+            string query = $"select * from Login";
+            return Task.FromResult(SqliteHandler.Exec(query));
+        }
+
+        public Task<bool> CreateLogin(CreateDTO create)
+        {
+            string query = $"insert into Login (Usuario, Clave, Nombre) values ('{create.usuario}', '{EncriptHandler.Encode(create.clave)}', '{create.nombre}')";//Clave Encriptada
+            return Task.FromResult(SqliteHandler.Exec(query));
+        }
+
+        public Task<bool> DeleteLogin(string id)
+        {
+            string query = $"delete from Login where Id = '{id}'";
+            return Task.FromResult(SqliteHandler.Exec(query));
+        }
+
+        public Task<bool> UpdateLogin(string estado, string id)
+        {
+            string query = $"update Login set Estado = '{estado}' where  Id = '{id}'";
+            return Task.FromResult(SqliteHandler.Exec(query));
+        }
+
 
         public async Task<LoginResponse> Login(LoginDTO login)
         {
@@ -42,54 +66,20 @@ namespace servicios.v1
 
             var userList = JsonConvert.DeserializeObject<List<Login>>(json);//En esta linea utilizamos el JSON para convertirlo a una lista de objetos del tipo Login, que es la entidad que representa la tabla Login en la BD.
             var userDb = userList?.FirstOrDefault(); //Obtenemos el primer usuario de la lista, que es el que coincide con las credenciales ingresadas.
-
             result.Estado= true;
             result.Codigo = 1;
             result.Mensaje = "Login Completado Satisfactoriamente";
             result.FechaLogin = DateTime.Now.ToString();
-            result.Token = CrearJWT(userDb.Usuario, userDb.Id, userDb.Nombre);//Generamos el token en base a la informacion del usuario obtenido de la BD, utilizando el metodo CrearJWT que se encuentra mas abajo.
+
+            query = $"update Login set FechaLogin = '{result.FechaLogin}' where Id = '{userDb.Id}'"; //Actualizamos la fecha de login del usuario en la BD.
+            bool updateLogin = SqliteHandler.Exec(query); //lineas agregadas a lo ultimo de la clase
+            JwtHandler jwt = new JwtHandler(_configuration);
+
+            result.Token = jwt.CrearJWT(userDb.Usuario, userDb.Id, userDb.Nombre);//Generamos el token en base a la informacion del usuario obtenido de la BD, utilizando el metodo CrearJWT que se encuentra mas abajo.
             return result;
 
         }//cerrado
 
 
-        private string CrearJWT(string usuario, int? idUsuario, string nombre)
-        {
-            var jwt = _configuration.GetSection("Jwt"); //En base a la info q trae este archivo, generamos el token
-            var secret = jwt["Secret"] ?? throw new InvalidOperationException("Jwt: Secret no configurado");
-            var issuer = jwt["Issuer"] ?? "microservicio.login";
-            var audience = jwt["Audience"] ?? "microservicio.login";
-            var minutes = int.TryParse(jwt["ExpirationMinutes"], out var m) ? m : 0;
-
-            var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.Sub, usuario),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new(ClaimTypes.Name,usuario)
-            };
-
-            if (idUsuario.HasValue)
-            {
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, idUsuario.Value.ToString()));
-            }
-
-            if (!string.IsNullOrEmpty(nombre))
-            {
-                claims.Add(new Claim(ClaimTypes.GivenName, nombre));
-            }
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)); //Esta linea termina creando eltoken con todo lo de arriba
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);//HMCACSHA256 es el algoritmo de encriptacion-
-
-            var token = new JwtSecurityToken(
-                issuer,
-                audience,
-                claims,
-                expires: DateTime.UtcNow.AddMinutes(minutes),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
     }
 }

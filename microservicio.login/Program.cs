@@ -17,7 +17,7 @@ builder.Services.AddCors(option => option.AddDefaultPolicy(builder =>
         }
 ));
 
-//Config conexion SQLITE (despues)
+//Config conexion SQLITE
 SqliteHandler.ConnectionString = builder.Configuration.GetConnectionString("defaultConnection");
 
 //Dependencias
