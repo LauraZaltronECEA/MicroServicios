@@ -21,7 +21,6 @@ builder.Services.AddCors(option => option.AddDefaultPolicy(builder =>
 }
 ));
 
-
 var jwt = builder.Configuration.GetSection("Jwt"); 
 var secret = jwt["Secret"] ?? throw new InvalidOperationException("Jwt: Secret no configurado");
 var issuer = jwt["Issuer"] ?? "microservicio.login";
