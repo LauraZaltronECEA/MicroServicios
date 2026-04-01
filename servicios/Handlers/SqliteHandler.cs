@@ -1,4 +1,5 @@
 ﻿
+
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 using System.Data;
@@ -21,13 +22,17 @@ namespace servicios.Handlers
             string response = string.Empty;
             DataTable dt = new DataTable();
             SqliteConnection cnn = new SqliteConnection(ConnectionString);
+
             cnn.Open();
+
             SqliteCommand mycommand = new SqliteCommand(query, cnn);
             mycommand.CommandText = query;
             SqliteDataReader reader = mycommand.ExecuteReader();
             dt.Load(reader);
+
             reader.Close();
             cnn.Close();
+
             return dt;
         }
 

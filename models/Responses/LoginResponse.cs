@@ -13,5 +13,9 @@ namespace models.Responses
 
         public bool Estado { get; set; }
 
+        public string FechaLogin { get; set; }
+
+        public string Token { get; set; }   
+
     }
 }
