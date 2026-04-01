@@ -20,12 +20,11 @@ namespace servicios.v1
             _configuration = configuration;
         }
 
-        public Task<string> GetLogin() //Cambie tipo de BOOL a DT pero tira 'Login' en swagger,
-                                       //siendo de tipo Bool, tira False, cuando deberia devolver la lista de usuarios.
+        public Task<string> GetLogin() 
         {
             string query = $"select * from Login";
             return Task.FromResult(SqliteHandler.GetJson(query));
-        }
+        }//No me funcionaba porque usaba exc en vez de getjson!!
 
         public Task<bool> CreateLogin(CreateLoginDTO create)
         {
