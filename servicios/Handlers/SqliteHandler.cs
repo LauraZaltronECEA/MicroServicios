@@ -39,7 +39,7 @@ namespace servicios.Handlers
         public static bool Exec(string query) 
         {
             bool response = false;
-            SqliteConnection Conn = new SqliteConnection();
+            SqliteConnection Conn = new SqliteConnection(ConnectionString);//faltaba esto, por eso tiraba error.
             SqliteCommand Command = new SqliteCommand(query,Conn);
             Conn.Open();
 

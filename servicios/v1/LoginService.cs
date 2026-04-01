@@ -64,8 +64,14 @@ namespace servicios.v1
                 return await Task.FromResult(result);
             }
 
-            var userList = JsonConvert.DeserializeObject<List<Login>>(json);//En esta linea utilizamos el JSON para convertirlo a una lista de objetos del tipo Login, que es la entidad que representa la tabla Login en la BD.
-            var userDb = userList?.FirstOrDefault(); //Obtenemos el primer usuario de la lista, que es el que coincide con las credenciales ingresadas.
+            var userList = JsonConvert.DeserializeObject<List<Login>>(json);//En esta linea utilizamos el JSON
+                                                                            //para convertirlo a una lista de objetos
+                                                                            //del tipo Login,
+                                                                            //que es la entidad que representa
+                                                                            //la tabla Login en la BD.
+
+            var userDb = userList?.FirstOrDefault(); //Obtenemos el primer usuario de la lista,
+                                                     //que es el que coincide con las credenciales ingresadas.
             result.Estado= true;
             result.Codigo = 1;
             result.Mensaje = "Login Completado Satisfactoriamente";
