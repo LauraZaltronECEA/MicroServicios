@@ -1,9 +1,15 @@
 ﻿using services.Handlers;
 using servicios.Handlers;
+using System;
+using TelegramService;
 
-SqliteHandler.ConnectionString = "Data source=Database/LoginDataBase.db";
+EnvLoader.LoadEnv(); // carga variables desde TelegramService/.env
 
-string token = "8636517614:AAGtMwdea26SlSefW9nx9WJIajIIUtKnWqQ";
+SqliteHandler.ConnectionString = Environment.GetEnvironmentVariable("SQLITE_CONNECTION")
+    ?? "Data source=Database/LoginDataBase.db";
+
+string token = Environment.GetEnvironmentVariable("TELEGRAM_TOKEN")
+    ?? throw new InvalidOperationException("TELEGRAM_TOKEN no está configurada.");
 
 using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (s, e) =>
@@ -21,5 +27,4 @@ try
 catch (OperationCanceledException)
 {
     Console.WriteLine("Bot detenido por el usuario.");
-
 }
